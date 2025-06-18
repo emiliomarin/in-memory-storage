@@ -18,6 +18,7 @@ const defaultTimeout = 5 * time.Second
 
 type Application struct {
 	httpServer *http.Server
+	port       string
 
 	// value used to determine the gap of time
 	// required for shutdown the application
@@ -34,6 +35,7 @@ func New(port string) (*Application, error) {
 	return &Application{
 		httpServer: httpServer,
 		timeout:    defaultTimeout,
+		port:       port,
 	}, nil
 }
 
@@ -49,7 +51,7 @@ func (app *Application) Start() {
 		}
 	}()
 
-	fmt.Println("Server is running... Press Ctrl+C to stop.")
+	fmt.Println("Server is running in port", app.port, "... Press Ctrl+C to stop.")
 
 	<-quitCh
 	fmt.Println(nil, "Server stopping...")

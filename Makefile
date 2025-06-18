@@ -19,6 +19,11 @@ test: ; $(info running tests…)
 	fi;
 
 .PHONY: lint
-## Install project dependencies
+## Run linters. Usage: 'make lint'
 lint:
 	@golangci-lint run
+
+.PHONY: run
+## Run the application. Usage: 'make run'
+run:
+	@go run --tags dev ./cmd/server/. 
