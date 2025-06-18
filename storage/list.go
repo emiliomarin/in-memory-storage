@@ -1,7 +1,5 @@
 package storage
 
-import "errors"
-
 type listStore[T any] struct {
 	store map[string][]T
 }
@@ -41,7 +39,7 @@ func (ls *listStore[T]) Remove(key string) error {
 // It will return an error if the list is not found
 func (ls *listStore[T]) Push(key string, val T) error {
 	if _, ok := ls.store[key]; !ok {
-		return errors.New("not found") // TODO: Unify errors
+		return ErrNotFound
 	}
 	ls.store[key] = append(ls.store[key], val)
 	return nil
@@ -53,11 +51,11 @@ func (ls *listStore[T]) Pop(key string) (T, error) {
 	var zero T
 
 	if _, ok := ls.store[key]; !ok {
-		return zero, errors.New("not found") // TODO: Unify errors
+		return zero, ErrNotFound
 	}
 
 	if len(ls.store[key]) == 0 {
-		return zero, errors.New("list is empty")
+		return zero, ErrEmptyList
 	}
 
 	val := ls.store[key][0]

@@ -1,7 +1,6 @@
 package storage_test
 
 import (
-	"errors"
 	"in-memory-storage/storage"
 	"testing"
 
@@ -25,7 +24,7 @@ func TestStringStore_Set(t *testing.T) {
 			key:         "existing-key",
 			val:         "new-value",
 			expectedVal: "existing-value",
-			expectedErr: errors.New("key already exists"),
+			expectedErr: storage.ErrAlreadyExists,
 		},
 		"it should set the value": {
 			key:         "new-key",
@@ -61,7 +60,7 @@ func TestStringStore_Get(t *testing.T) {
 	}{
 		"it should return an error if key not found": {
 			key:         "new-key",
-			expectedErr: errors.New("not found"),
+			expectedErr: storage.ErrNotFound,
 		},
 		"it should get the value": {
 			key:         "existing-key",
@@ -94,7 +93,7 @@ func TestStringStore_Update(t *testing.T) {
 		"it should return an error if key not found": {
 			key:         "new-key",
 			val:         "new-value",
-			expectedErr: errors.New("not found"),
+			expectedErr: storage.ErrNotFound,
 		},
 		"it should update the value": {
 			key:         "existing-key",
@@ -131,11 +130,11 @@ func TestStringStore_Remove(t *testing.T) {
 	}{
 		"it should return an error if key not found": {
 			key:         "new-key",
-			expectedErr: errors.New("not found"),
+			expectedErr: storage.ErrNotFound,
 		},
 		"it should remove the value": {
 			key:            "existing-key",
-			expectedGetErr: errors.New("not found"),
+			expectedGetErr: storage.ErrNotFound,
 		},
 	}
 

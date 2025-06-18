@@ -25,7 +25,7 @@ func TestListStore_Set(t *testing.T) {
 			key:         "existing-key",
 			list:        []string{"new-value"},
 			expectedVal: []string{"val1", "val2"},
-			expectedErr: errors.New("key already exists"),
+			expectedErr: storage.ErrAlreadyExists,
 		},
 		"it should set the value": {
 			key:         "new-key",
@@ -64,7 +64,7 @@ func TestListStore_Set_Int(t *testing.T) {
 			key:          "existing-key",
 			list:         []int{3, 4},
 			expectedList: []int{1, 2},
-			expectedErr:  errors.New("key already exists"),
+			expectedErr:  storage.ErrAlreadyExists,
 		},
 		"it should set the value": {
 			key:          "new-key",
@@ -100,7 +100,7 @@ func TestListStore_Get(t *testing.T) {
 	}{
 		"it should return an error if key not found": {
 			key:         "new-key",
-			expectedErr: errors.New("not found"),
+			expectedErr: storage.ErrNotFound,
 		},
 		"it should get the value": {
 			key:          "existing-key",
@@ -170,11 +170,11 @@ func TestListStore_Remove(t *testing.T) {
 	}{
 		"it should return an error if key not found": {
 			key:         "new-key",
-			expectedErr: errors.New("not found"),
+			expectedErr: storage.ErrNotFound,
 		},
 		"it should remove the value": {
 			key:            "existing-key",
-			expectedGetErr: errors.New("not found"),
+			expectedGetErr: storage.ErrNotFound,
 		},
 	}
 
@@ -207,7 +207,7 @@ func TestListStore_Push(t *testing.T) {
 		"it should return an error if key not found": {
 			key:         "new-key",
 			val:         "val3",
-			expectedErr: errors.New("not found"),
+			expectedErr: storage.ErrNotFound,
 		},
 		"it should get the value": {
 			key:          "existing-key",
@@ -222,9 +222,9 @@ func TestListStore_Push(t *testing.T) {
 			assert.Equal(t, tc.expectedErr, err)
 
 			if err == nil {
-				val, err := store.Get(tc.key)
+				list, err := store.Get(tc.key)
 				assert.Nil(t, err)
-				assert.Equal(t, tc.expectedList, val)
+				assert.Equal(t, tc.expectedList, list)
 			}
 		})
 	}
@@ -237,33 +237,40 @@ func TestListStore_Pop(t *testing.T) {
 	err := store.Set("existing-key", []string{"val1", "val2"})
 	assert.Nil(t, err)
 
+	err = store.Set("empty-list-key", []string{})
+	assert.Nil(t, err)
+
 	testCases := map[string]struct {
 		key          string
-		val          string
+		expectedVal  string
 		expectedList []string
 		expectedErr  error
 	}{
 		"it should return an error if key not found": {
 			key:         "new-key",
-			val:         "val3",
-			expectedErr: errors.New("not found"),
+			expectedErr: storage.ErrNotFound,
 		},
-		"it should get the value": {
+		"it should return an error if the list is empty": {
+			key:         "empty-list-key",
+			expectedErr: storage.ErrEmptyList,
+		},
+		"it should get the first value of the list": {
 			key:          "existing-key",
-			val:          "val3",
-			expectedList: []string{"val1", "val2", "val3"},
+			expectedVal:  "val1",
+			expectedList: []string{"val2"},
 		},
 	}
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			err := store.Push(tc.key, tc.val)
+			val, err := store.Pop(tc.key)
 			assert.Equal(t, tc.expectedErr, err)
+			assert.Equal(t, tc.expectedVal, val)
 
 			if err == nil {
-				val, err := store.Get(tc.key)
+				list, err := store.Get(tc.key)
 				assert.Nil(t, err)
-				assert.Equal(t, tc.expectedList, val)
+				assert.Equal(t, tc.expectedList, list)
 			}
 		})
 	}

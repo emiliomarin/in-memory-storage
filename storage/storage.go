@@ -32,14 +32,14 @@ func set[T any](store map[string]T, key string, val T) error {
 func get[T any](store map[string]T, key string) (T, error) {
 	if _, ok := store[key]; !ok {
 		var zero T
-		return zero, errors.New("not found") // TODO: Unify errors
+		return zero, ErrNotFound
 	}
 	return store[key], nil
 }
 
 func update[T any](store map[string]T, key string, val T) error {
 	if _, ok := store[key]; !ok {
-		return errors.New("not found")
+		return ErrNotFound
 	}
 
 	store[key] = val
@@ -48,7 +48,7 @@ func update[T any](store map[string]T, key string, val T) error {
 
 func remove[T any](store map[string]T, key string) error {
 	if _, ok := store[key]; !ok {
-		return errors.New("not found")
+		return ErrNotFound
 	}
 	delete(store, key)
 
