@@ -12,7 +12,8 @@ func TestStringStore_Set(t *testing.T) {
 	store := storage.NewStringStore()
 
 	// Populate existing values
-	store.Set("existing-key", "existing-value")
+	err := store.Set("existing-key", "existing-value")
+	assert.Nil(t, err)
 
 	testCases := map[string]struct {
 		key         string
@@ -50,7 +51,8 @@ func TestStringStore_Get(t *testing.T) {
 	store := storage.NewStringStore()
 
 	// Populate existing values
-	store.Set("existing-key", "existing-value")
+	err := store.Set("existing-key", "existing-value")
+	assert.Nil(t, err)
 
 	testCases := map[string]struct {
 		key         string
@@ -80,7 +82,8 @@ func TestStringStore_Update(t *testing.T) {
 	store := storage.NewStringStore()
 
 	// Populate existing values
-	store.Set("existing-key", "existing-value")
+	err := store.Set("existing-key", "existing-value")
+	assert.Nil(t, err)
 
 	testCases := map[string]struct {
 		key         string
@@ -118,7 +121,8 @@ func TestStringStore_Remove(t *testing.T) {
 	store := storage.NewStringStore()
 
 	// Populate existing values
-	store.Set("existing-key", "existing-value")
+	err := store.Set("existing-key", "existing-value")
+	assert.Nil(t, err)
 
 	testCases := map[string]struct {
 		key            string

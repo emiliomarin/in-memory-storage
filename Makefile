@@ -17,3 +17,8 @@ test: ; $(info running tests…)
 	else \
 		go test -v -failfast -run $$func $$path; \
 	fi;
+
+.PHONY: lint
+## Install project dependencies
+lint:
+	@golangci-lint run

@@ -12,7 +12,8 @@ func TestListStore_Set(t *testing.T) {
 	store := storage.NewListStore[string]()
 
 	// Populate existing values
-	store.Set("existing-key", []string{"val1", "val2"})
+	err := store.Set("existing-key", []string{"val1", "val2"})
+	assert.Nil(t, err)
 
 	testCases := map[string]struct {
 		key         string
@@ -50,7 +51,8 @@ func TestListStore_Set_Int(t *testing.T) {
 	store := storage.NewListStore[int]()
 
 	// Populate existing values
-	store.Set("existing-key", []int{1, 2})
+	err := store.Set("existing-key", []int{1, 2})
+	assert.Nil(t, err)
 
 	testCases := map[string]struct {
 		key          string
@@ -88,7 +90,8 @@ func TestListStore_Get(t *testing.T) {
 	store := storage.NewListStore[string]()
 
 	// Populate existing values
-	store.Set("existing-key", []string{"val1", "val2"})
+	err := store.Set("existing-key", []string{"val1", "val2"})
+	assert.Nil(t, err)
 
 	testCases := map[string]struct {
 		key          string
@@ -118,7 +121,8 @@ func TestListStore_Update(t *testing.T) {
 	store := storage.NewListStore[string]()
 
 	// Populate existing values
-	store.Set("existing-key", []string{"val1", "val2"})
+	err := store.Set("existing-key", []string{"val1", "val2"})
+	assert.Nil(t, err)
 
 	testCases := map[string]struct {
 		key          string
@@ -156,7 +160,8 @@ func TestListStore_Remove(t *testing.T) {
 	store := storage.NewListStore[string]()
 
 	// Populate existing values
-	store.Set("existing-key", []string{"val1", "val2"})
+	err := store.Set("existing-key", []string{"val1", "val2"})
+	assert.Nil(t, err)
 
 	testCases := map[string]struct {
 		key            string
@@ -190,7 +195,8 @@ func TestListStore_Push(t *testing.T) {
 	store := storage.NewListStore[string]()
 
 	// Populate existing values
-	store.Set("existing-key", []string{"val1", "val2"})
+	err := store.Set("existing-key", []string{"val1", "val2"})
+	assert.Nil(t, err)
 
 	testCases := map[string]struct {
 		key          string
@@ -228,7 +234,8 @@ func TestListStore_Pop(t *testing.T) {
 	store := storage.NewListStore[string]()
 
 	// Populate existing values
-	store.Set("existing-key", []string{"val1", "val2"})
+	err := store.Set("existing-key", []string{"val1", "val2"})
+	assert.Nil(t, err)
 
 	testCases := map[string]struct {
 		key          string

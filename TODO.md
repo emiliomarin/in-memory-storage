@@ -1,7 +1,5 @@
-- Makefile for running
 - Docs for running
 - API docs
-- Add golangci
 - Implement TTL
 - Implement REST API
 - Check optional features
