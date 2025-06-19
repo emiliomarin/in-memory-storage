@@ -16,7 +16,7 @@ type Value[T any] struct {
 
 // StringStore defines an interface for storing and retrieving string values.
 type StringStore interface {
-	Get(key string) (Value[string], error)
+	Get(key string) (*Value[string], error)
 	Set(key string, val string, ttl time.Duration) error
 	Update(key string, val string) error
 	Remove(key string) error
@@ -37,7 +37,7 @@ func set[T any](store map[string]Value[T], key string, val T, ttl time.Duration)
 		return ErrAlreadyExists
 	}
 
-	var expiresAt time.Time
+	expiresAt := time.Time{}
 	if ttl > 0 {
 		expiresAt = time.Now().Add(ttl)
 	}

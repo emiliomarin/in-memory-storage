@@ -9,4 +9,6 @@ var (
 	ErrAlreadyExists = errors.New("already exists")
 	// ErrEmptyList is returned when trying to pop an item from an empty list
 	ErrEmptyList = errors.New("list is empty")
+	// ErrExpired is returned when trying to access an expired item
+	ErrExpired = errors.New("expired")
 )

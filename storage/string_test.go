@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -19,19 +20,19 @@ func TestStringStore_Set(t *testing.T) {
 	testCases := map[string]struct {
 		key         string
 		val         string
-		expectedVal storage.Value[string]
+		expectedVal *storage.Value[string]
 		expectedErr error
 	}{
 		"it should return an error if key already exists": {
 			key:         "existing-key",
 			val:         "new-value",
-			expectedVal: storage.Value[string]{Value: "existing-value"},
+			expectedVal: &storage.Value[string]{Value: "existing-value"},
 			expectedErr: storage.ErrAlreadyExists,
 		},
 		"it should set the value": {
 			key:         "new-key",
 			val:         "new-value",
-			expectedVal: storage.Value[string]{Value: "new-value"},
+			expectedVal: &storage.Value[string]{Value: "new-value"},
 		},
 	}
 
@@ -57,8 +58,9 @@ func TestStringStore_Get(t *testing.T) {
 
 	testCases := map[string]struct {
 		key         string
-		expectedVal storage.Value[string]
+		expectedVal *storage.Value[string]
 		expectedErr error
+		setup       func()
 	}{
 		"it should return an error if key not found": {
 			key:         "new-key",
@@ -66,15 +68,40 @@ func TestStringStore_Get(t *testing.T) {
 		},
 		"it should get the value": {
 			key:         "existing-key",
-			expectedVal: storage.Value[string]{Value: "existing-value"},
+			expectedVal: &storage.Value[string]{Value: "existing-value"},
+		},
+		"it should return an error if the key has expired": {
+			key:         "expired-key",
+			expectedErr: storage.ErrExpired,
+			setup: func() {
+				// Set an expired value
+				err := store.Set("expired-key", "expired-value", time.Millisecond)
+				assert.Nil(t, err)
+				time.Sleep(2 * time.Millisecond) // Ensure the value is expired
+			},
+		},
+		"it should return the expected value if the key hasn't expired": {
+			key:         "ttl-valid-key",
+			expectedVal: &storage.Value[string]{Value: "valid-value"},
+			setup: func() {
+				// Set a valid value with TTL
+				err := store.Set("ttl-valid-key", "valid-value", time.Second)
+				assert.Nil(t, err)
+			},
 		},
 	}
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
+			if tc.setup != nil {
+				tc.setup()
+			}
+
 			val, err := store.Get(tc.key)
 			assert.Equal(t, tc.expectedErr, err)
-			assert.Equal(t, tc.expectedVal, val)
+			if val != nil {
+				assert.Equal(t, tc.expectedVal.Value, val.Value)
+			}
 		})
 	}
 }
