@@ -1,13 +1,13 @@
 package storage
 
 type stringStore struct {
-	store map[string]string
+	store map[string]Value[string]
 }
 
 // NewStringStore initializes a new string store
 func NewStringStore() StringStore {
 	return &stringStore{
-		store: map[string]string{}, // TODO: Here we could init with existing data
+		store: map[string]Value[string]{}, // TODO: Here we could init with existing data
 	}
 }
 
@@ -19,7 +19,7 @@ func (ss *stringStore) Set(key, val string) error {
 
 // Get will return the value for the given key.
 // It will return an error if not found.
-func (ss *stringStore) Get(key string) (string, error) {
+func (ss *stringStore) Get(key string) (Value[string], error) {
 	return get(ss.store, key)
 }
 

@@ -1,13 +1,13 @@
 package storage
 
 type listStore[T any] struct {
-	store map[string][]T
+	store map[string]Value[[]T]
 }
 
 // NewListStore initializes a list store for the given data type
 func NewListStore[T any]() ListStore[T] {
 	return &listStore[T]{
-		store: map[string][]T{}, // TODO: Here we could init with existing data
+		store: map[string]Value[[]T]{}, // TODO: Here we could init with existing data
 	}
 }
 
@@ -19,7 +19,7 @@ func (ls *listStore[T]) Set(key string, list []T) error {
 
 // Get will return the value for the given key.
 // It will return an error if the list is not found.
-func (ls *listStore[T]) Get(key string) ([]T, error) {
+func (ls *listStore[T]) Get(key string) (Value[[]T], error) {
 	return get(ls.store, key)
 }
 
@@ -41,7 +41,11 @@ func (ls *listStore[T]) Push(key string, val T) error {
 	if _, ok := ls.store[key]; !ok {
 		return ErrNotFound
 	}
-	ls.store[key] = append(ls.store[key], val)
+
+	v := ls.store[key]
+	v.Value = append(v.Value, val)
+	ls.store[key] = v
+
 	return nil
 }
 
@@ -54,12 +58,15 @@ func (ls *listStore[T]) Pop(key string) (T, error) {
 		return zero, ErrNotFound
 	}
 
-	if len(ls.store[key]) == 0 {
+	if len(ls.store[key].Value) == 0 {
 		return zero, ErrEmptyList
 	}
 
-	val := ls.store[key][0]
-	ls.store[key] = ls.store[key][1:]
+	val := ls.store[key].Value[0]
+
+	newList := ls.store[key]
+	newList.Value = ls.store[key].Value[1:]
+	ls.store[key] = newList
 
 	return val, nil
 }

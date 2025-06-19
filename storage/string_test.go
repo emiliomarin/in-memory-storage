@@ -17,19 +17,19 @@ func TestStringStore_Set(t *testing.T) {
 	testCases := map[string]struct {
 		key         string
 		val         string
-		expectedVal string
+		expectedVal storage.Value[string]
 		expectedErr error
 	}{
 		"it should return an error if key already exists": {
 			key:         "existing-key",
 			val:         "new-value",
-			expectedVal: "existing-value",
+			expectedVal: storage.Value[string]{Value: "existing-value"},
 			expectedErr: storage.ErrAlreadyExists,
 		},
 		"it should set the value": {
 			key:         "new-key",
 			val:         "new-value",
-			expectedVal: "new-value",
+			expectedVal: storage.Value[string]{Value: "new-value"},
 		},
 	}
 
@@ -55,7 +55,7 @@ func TestStringStore_Get(t *testing.T) {
 
 	testCases := map[string]struct {
 		key         string
-		expectedVal string
+		expectedVal storage.Value[string]
 		expectedErr error
 	}{
 		"it should return an error if key not found": {
@@ -64,7 +64,7 @@ func TestStringStore_Get(t *testing.T) {
 		},
 		"it should get the value": {
 			key:         "existing-key",
-			expectedVal: "existing-value",
+			expectedVal: storage.Value[string]{Value: "existing-value"},
 		},
 	}
 
@@ -87,7 +87,7 @@ func TestStringStore_Update(t *testing.T) {
 	testCases := map[string]struct {
 		key         string
 		val         string
-		expectedVal string
+		expectedVal storage.Value[string]
 		expectedErr error
 	}{
 		"it should return an error if key not found": {
@@ -98,7 +98,7 @@ func TestStringStore_Update(t *testing.T) {
 		"it should update the value": {
 			key:         "existing-key",
 			val:         "new-value",
-			expectedVal: "new-value",
+			expectedVal: storage.Value[string]{Value: "new-value"},
 		},
 	}
 
