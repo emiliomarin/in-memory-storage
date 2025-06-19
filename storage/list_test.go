@@ -12,7 +12,7 @@ func TestListStore_Set(t *testing.T) {
 	store := storage.NewListStore[string]()
 
 	// Populate existing values
-	err := store.Set("existing-key", []string{"val1", "val2"})
+	err := store.Set("existing-key", []string{"val1", "val2"}, 0)
 	assert.Nil(t, err)
 
 	testCases := map[string]struct {
@@ -36,7 +36,7 @@ func TestListStore_Set(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			err := store.Set(tc.key, tc.list)
+			err := store.Set(tc.key, tc.list, 0)
 			assert.Equal(t, tc.expectedErr, err)
 
 			val, err := store.Get(tc.key)
@@ -51,7 +51,7 @@ func TestListStore_Set_Int(t *testing.T) {
 	store := storage.NewListStore[int]()
 
 	// Populate existing values
-	err := store.Set("existing-key", []int{1, 2})
+	err := store.Set("existing-key", []int{1, 2}, 0)
 	assert.Nil(t, err)
 
 	testCases := map[string]struct {
@@ -75,7 +75,7 @@ func TestListStore_Set_Int(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			err := store.Set(tc.key, tc.list)
+			err := store.Set(tc.key, tc.list, 0)
 			assert.Equal(t, tc.expectedErr, err)
 
 			val, err := store.Get(tc.key)
@@ -90,7 +90,7 @@ func TestListStore_Get(t *testing.T) {
 	store := storage.NewListStore[string]()
 
 	// Populate existing values
-	err := store.Set("existing-key", []string{"val1", "val2"})
+	err := store.Set("existing-key", []string{"val1", "val2"}, 0)
 	assert.Nil(t, err)
 
 	testCases := map[string]struct {
@@ -121,7 +121,7 @@ func TestListStore_Update(t *testing.T) {
 	store := storage.NewListStore[string]()
 
 	// Populate existing values
-	err := store.Set("existing-key", []string{"val1", "val2"})
+	err := store.Set("existing-key", []string{"val1", "val2"}, 0)
 	assert.Nil(t, err)
 
 	testCases := map[string]struct {
@@ -161,7 +161,7 @@ func TestListStore_Remove(t *testing.T) {
 	store := storage.NewListStore[string]()
 
 	// Populate existing values
-	err := store.Set("existing-key", []string{"val1", "val2"})
+	err := store.Set("existing-key", []string{"val1", "val2"}, 0)
 	assert.Nil(t, err)
 
 	testCases := map[string]struct {
@@ -196,7 +196,7 @@ func TestListStore_Push(t *testing.T) {
 	store := storage.NewListStore[string]()
 
 	// Populate existing values
-	err := store.Set("existing-key", []string{"val1", "val2"})
+	err := store.Set("existing-key", []string{"val1", "val2"}, 0)
 	assert.Nil(t, err)
 
 	testCases := map[string]struct {
@@ -235,10 +235,10 @@ func TestListStore_Pop(t *testing.T) {
 	store := storage.NewListStore[string]()
 
 	// Populate existing values
-	err := store.Set("existing-key", []string{"val1", "val2"})
+	err := store.Set("existing-key", []string{"val1", "val2"}, 0)
 	assert.Nil(t, err)
 
-	err = store.Set("empty-list-key", []string{})
+	err = store.Set("empty-list-key", []string{}, 0)
 	assert.Nil(t, err)
 
 	testCases := map[string]struct {

@@ -1,5 +1,7 @@
 package storage
 
+import "time"
+
 type stringStore struct {
 	store map[string]Value[string]
 }
@@ -13,8 +15,8 @@ func NewStringStore() StringStore {
 
 // Set will store the given key/value pair.
 // It will check if the key already exists and return an error.
-func (ss *stringStore) Set(key, val string) error {
-	return set(ss.store, key, val)
+func (ss *stringStore) Set(key, val string, ttl time.Duration) error {
+	return set(ss.store, key, val, ttl)
 }
 
 // Get will return the value for the given key.

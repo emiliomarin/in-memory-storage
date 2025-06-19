@@ -1,5 +1,7 @@
 package storage
 
+import "time"
+
 type listStore[T any] struct {
 	store map[string]Value[[]T]
 }
@@ -13,8 +15,8 @@ func NewListStore[T any]() ListStore[T] {
 
 // Set will store the given key/value pair.
 // It will check if the key already exists and return an error.
-func (ls *listStore[T]) Set(key string, list []T) error {
-	return set(ls.store, key, list)
+func (ls *listStore[T]) Set(key string, list []T, ttl time.Duration) error {
+	return set(ls.store, key, list, ttl)
 }
 
 // Get will return the value for the given key.

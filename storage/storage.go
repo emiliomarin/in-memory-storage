@@ -11,13 +11,13 @@ import (
 // It can be used to store any type of data with an expiration time.
 type Value[T any] struct {
 	Value     T
-	ExpiresAt *time.Time
+	ExpiresAt time.Time
 }
 
 // StringStore defines an interface for storing and retrieving string values.
 type StringStore interface {
 	Get(key string) (Value[string], error)
-	Set(key string, val string) error
+	Set(key string, val string, ttl time.Duration) error
 	Update(key string, val string) error
 	Remove(key string) error
 }
@@ -25,18 +25,24 @@ type StringStore interface {
 // ListStore defines an interface for storing and retrieving lists of any type.
 type ListStore[T any] interface {
 	Get(key string) (Value[[]T], error)
-	Set(key string, list []T) error
+	Set(key string, list []T, ttl time.Duration) error
 	Update(key string, list []T) error
 	Remove(key string) error
 	Push(key string, val T) error
 	Pop(key string) (T, error)
 }
 
-func set[T any](store map[string]Value[T], key string, val T) error {
+func set[T any](store map[string]Value[T], key string, val T, ttl time.Duration) error {
 	if _, ok := store[key]; ok {
 		return ErrAlreadyExists
 	}
-	store[key] = Value[T]{Value: val}
+
+	var expiresAt time.Time
+	if ttl > 0 {
+		expiresAt = time.Now().Add(ttl)
+	}
+
+	store[key] = Value[T]{Value: val, ExpiresAt: expiresAt}
 	return nil
 }
 
