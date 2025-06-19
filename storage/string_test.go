@@ -2,6 +2,8 @@ package storage_test
 
 import (
 	"in-memory-storage/storage"
+	"strconv"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -149,4 +151,55 @@ func TestStringStore_Remove(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestStringStore_ConcurrentSet(t *testing.T) {
+	store := storage.NewStringStore()
+	const n = 100
+	var wg sync.WaitGroup
+
+	for i := 0; i < n; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			key := "key-" + strconv.Itoa(i)
+			val := "val-" + strconv.Itoa(i)
+			err := store.Set(key, val, 0)
+			assert.Nil(t, err)
+		}(i)
+	}
+	wg.Wait()
+
+	for i := 0; i < n; i++ {
+		key := "key-" + strconv.Itoa(i)
+		val, err := store.Get(key)
+		assert.Nil(t, err)
+		assert.Equal(t, "val-"+strconv.Itoa(i), val.Value)
+	}
+}
+
+func TestStringStore_ConcurrentUpdate(t *testing.T) {
+	store := storage.NewStringStore()
+	key := "existing-key"
+	err := store.Set(key, "initial", 0)
+	assert.Nil(t, err)
+
+	const n = 100
+	var wg sync.WaitGroup
+
+	for i := 0; i < n; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			val := "val-" + strconv.Itoa(i)
+			err := store.Update(key, val)
+			assert.Nil(t, err)
+		}(i)
+	}
+	wg.Wait()
+
+	// Cannot guarantee the final value due to concurrent updates, but we can check that it contains the expected pattern
+	val, err := store.Get(key)
+	assert.Nil(t, err)
+	assert.Contains(t, val.Value, "val-")
 }
