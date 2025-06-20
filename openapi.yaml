@@ -1,0 +1,234 @@
+openapi: 3.0.3
+info:
+  title: In-Memory Storage API
+  version: 1.0.0
+  description: API for managing strings and string lists in memory.
+
+servers:
+  - url: http://localhost:{port}
+    variables:
+      port:
+        default: 8080
+
+paths:
+  /strings:
+    post:
+      summary: Set a string value
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                key:
+                  type: string
+                value:
+                  type: string
+              required: [key, value]
+      responses:
+        '200':
+          description: String set successfully
+        '400':
+          description: Bad request
+    get:
+      summary: Get a string value
+      parameters:
+        - in: query
+          name: key
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: String retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  key:
+                    type: string
+                  value:
+                    type: string
+        '404':
+          description: String not found
+    delete:
+      summary: Delete a string value
+      parameters:
+        - in: query
+          name: key
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: String deleted successfully
+        '404':
+          description: String not found
+    put:
+      summary: Update a string value
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                key:
+                  type: string
+                value:
+                  type: string
+              required: [key, value]
+      responses:
+        '200':
+          description: String updated successfully
+        '404':
+          description: String not found
+
+  /lists/strings:
+    post:
+      summary: Set a string list
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                key:
+                  type: string
+                values:
+                  type: array
+                  items:
+                    type: string
+              required: [key, values]
+      responses:
+        '200':
+          description: List set successfully
+        '400':
+          description: Bad request
+    get:
+      summary: Get a string list
+      parameters:
+        - in: query
+          name: key
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: List retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  key:
+                    type: string
+                  values:
+                    type: array
+                    items:
+                      type: string
+        '404':
+          description: List not found
+    delete:
+      summary: Delete a string list
+      parameters:
+        - in: query
+          name: key
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: List deleted successfully
+        '404':
+          description: List not found
+    put:
+      summary: Update a string list
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                key:
+                  type: string
+                values:
+                  type: array
+                  items:
+                    type: string
+              required: [key, values]
+      responses:
+        '200':
+          description: List updated successfully
+        '404':
+          description: List not found
+
+  /lists/strings/push:
+    post:
+      summary: Push a value to a string list
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                key:
+                  type: string
+                value:
+                  type: string
+              required: [key, value]
+      responses:
+        '200':
+          description: Value pushed successfully
+        '404':
+          description: List not found
+
+  /lists/strings/pop:
+    post:
+      summary: Pop a value from a string list
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                key:
+                  type: string
+              required: [key]
+      responses:
+        '200':
+          description: Value popped successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  value:
+                    type: string
+        '404':
+          description: List not found
+
+components:
+  schemas:
+    StringEntry:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+    StringListEntry:
+      type: object
+      properties:
+        key:
+          type: string
+        values:
+          type: array
+          items:
+            type: string 
