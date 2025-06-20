@@ -114,7 +114,7 @@ func TestStringStore_Update(t *testing.T) {
 	testCases := map[string]struct {
 		key         string
 		val         string
-		expectedVal storage.Value[string]
+		expectedVal *storage.Value[string]
 		expectedErr error
 	}{
 		"it should return an error if key not found": {
@@ -125,7 +125,7 @@ func TestStringStore_Update(t *testing.T) {
 		"it should update the value": {
 			key:         "existing-key",
 			val:         "new-value",
-			expectedVal: storage.Value[string]{Value: "new-value"},
+			expectedVal: &storage.Value[string]{Value: "new-value"},
 		},
 	}
 
