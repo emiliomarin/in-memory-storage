@@ -45,7 +45,7 @@ func (sc *stringController) Set(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusNoContent) // 204 No Content
+	w.WriteHeader(http.StatusNoContent)
 
 	// TODO: Here we could also return the response to have the expires at field
 }
@@ -95,7 +95,7 @@ func (sc *stringController) Delete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusNoContent) // 204 No Content
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (sc *stringController) Update(w http.ResponseWriter, r *http.Request) {
@@ -118,7 +118,7 @@ func (sc *stringController) Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusNoContent) // 204 No Content
+	w.WriteHeader(http.StatusNoContent)
 
 	// TODO: Here we could also return the response to have the expires at field
 }

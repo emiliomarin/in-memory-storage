@@ -1,6 +1,7 @@
 package http_test
 
 import (
+	"bytes"
 	"encoding/json"
 	gohttp "net/http"
 	"net/http/httptest"
@@ -8,53 +9,47 @@ import (
 	"time"
 
 	"in-memory-storage/internal/http"
-	"in-memory-storage/internal/strings"
+	"in-memory-storage/internal/lists"
 	"in-memory-storage/storage"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestStringsController_Set(t *testing.T) {
-	store := storage.NewStringStore()
-	controller := http.NewStringsController(store)
+func TestListsController_Set(t *testing.T) {
+	store := storage.NewListStore[string]()
+	controller := http.NewStringListsController(store)
 
 	// Populate store with data
-	err := store.Set("existing-key", "existing-value", 0)
+	err := store.Set("existing-key", []string{"a", "b"}, 0)
 	assert.NoError(t, err)
 
 	testCases := map[string]struct {
 		key            string
-		value          string
-		ttl            int
+		list           []string
+		ttl            int64
 		expectedStatus int
 		expectedError  error
 	}{
 		"it should return an error if the key is missing": {
 			key:            "",
-			value:          "foo",
+			list:           []string{"foo"},
 			expectedStatus: gohttp.StatusBadRequest,
 			expectedError:  http.ErrEmptyKey,
 		},
-		"it should return an error if the value is missing": {
-			key:            "foo",
-			value:          "",
-			expectedStatus: gohttp.StatusBadRequest,
-			expectedError:  http.ErrEmptyValue,
-		},
 		"it should return an error if the key already exists": {
 			key:            "existing-key",
-			value:          "existing-value",
+			list:           []string{"c", "d"},
 			expectedStatus: gohttp.StatusConflict,
 			expectedError:  http.ErrKeyAlreadyExists,
 		},
 		"success": {
 			key:            "foo",
-			value:          "bar",
+			list:           []string{"bar", "baz"},
 			expectedStatus: gohttp.StatusNoContent,
 		},
 		"success with ttl": {
 			key:            "bar",
-			value:          "foo",
+			list:           []string{"foo"},
 			ttl:            60,
 			expectedStatus: gohttp.StatusNoContent,
 		},
@@ -62,7 +57,11 @@ func TestStringsController_Set(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			req := httptest.NewRequest(gohttp.MethodPost, "/strings?key="+tc.key+"&value="+tc.value, nil)
+			reqBody, _ := json.Marshal(lists.SetRequest[string]{
+				List: tc.list,
+				TTL:  tc.ttl,
+			})
+			req := httptest.NewRequest(gohttp.MethodPost, "/lists?key="+tc.key, bytes.NewReader(reqBody))
 			rr := httptest.NewRecorder()
 
 			controller.Set(rr, req)
@@ -74,42 +73,40 @@ func TestStringsController_Set(t *testing.T) {
 				// Check that the value was set in the store if no error
 				storedValue, err := store.Get(tc.key)
 				assert.NoError(t, err)
-				assert.Equal(t, tc.value, storedValue.Value)
+				assert.ElementsMatch(t, tc.list, storedValue.Value)
 			}
 		})
 	}
 }
 
-func TestStringsController_Get(t *testing.T) {
-	store := storage.NewStringStore()
-	controller := http.NewStringsController(store)
+func TestListsController_Get(t *testing.T) {
+	store := storage.NewListStore[string]()
+	controller := http.NewStringListsController(store)
 
 	// Populate store with data
-	err := store.Set("existing-key", "existing-value", 60*time.Second)
+	err := store.Set("existing-key", []string{"a", "b"}, 60*time.Second)
 	assert.NoError(t, err)
-	err = store.Set("expired-key", "expired-value", 1*time.Millisecond)
+	err = store.Set("expired-key", []string{"expired-value"}, 1*time.Millisecond)
 	assert.NoError(t, err)
 
 	// Ensure the expired key is actually expired
 	time.Sleep(2 * time.Millisecond)
 
 	testCases := map[string]struct {
-		key               string
-		ttl               int
-		expectedStatus    int
-		expectedError     error
-		expectedValue     string
-		expectedExpiresAt string
+		key            string
+		expectedStatus int
+		expectedError  error
+		expectedList   []string
 	}{
 		"it should return an error if the key is missing": {
 			key:            "",
 			expectedStatus: gohttp.StatusBadRequest,
 			expectedError:  http.ErrEmptyKey,
 		},
-		"it should return an error if the key is not found": {
-			key:            "random-key",
+		"it should return an error if the key does not exist": {
+			key:            "non-existing-key",
 			expectedStatus: gohttp.StatusNotFound,
-			expectedError:  http.ErrKeyNotFound,
+			expectedError:  storage.ErrNotFound,
 		},
 		"it should return an error if the key has expired": {
 			key:            "expired-key",
@@ -119,13 +116,13 @@ func TestStringsController_Get(t *testing.T) {
 		"success": {
 			key:            "existing-key",
 			expectedStatus: gohttp.StatusOK,
-			expectedValue:  "existing-value",
+			expectedList:   []string{"a", "b"},
 		},
 	}
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			req := httptest.NewRequest(gohttp.MethodGet, "/strings?key="+tc.key, nil)
+			req := httptest.NewRequest(gohttp.MethodGet, "/lists?key="+tc.key, nil)
 			rr := httptest.NewRecorder()
 
 			controller.Get(rr, req)
@@ -134,10 +131,10 @@ func TestStringsController_Get(t *testing.T) {
 			if tc.expectedError != nil {
 				assert.Contains(t, rr.Body.String(), tc.expectedError.Error())
 			} else {
-				var response strings.GetResponse
+				var response lists.GetResponse[string]
 				err := json.Unmarshal(rr.Body.Bytes(), &response)
 				assert.NoError(t, err)
-				assert.Equal(t, tc.expectedValue, response.Value)
+				assert.Equal(t, tc.expectedList, response.List)
 			}
 		})
 	}
