@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"errors"
 	"sync"
 	"time"
 )
@@ -28,10 +29,24 @@ func (ls *listStore[T]) Set(key string, list []T, ttl time.Duration) error {
 
 // Get will return the value for the given key.
 // It will return an error if the list is not found.
-func (ls *listStore[T]) Get(key string) (Value[[]T], error) {
+func (ls *listStore[T]) Get(key string) (*Value[[]T], error) {
 	ls.mu.RLock()
 	defer ls.mu.RUnlock()
-	return get(ls.store, key)
+	value, err := get(ls.store, key)
+	if err != nil {
+		return nil, err
+	}
+
+	// If the value has an expiration time and it is in the past, remove it
+	// and return an error indicating it has expired.
+	if !value.ExpiresAt.IsZero() && value.ExpiresAt.Before(time.Now()) {
+		if err := remove(ls.store, key); err != nil {
+			return nil, errors.New("failed to remove expired key: " + err.Error())
+		}
+		return nil, ErrExpired
+	}
+
+	return &value, nil
 }
 
 // Update will update the value for the given key.

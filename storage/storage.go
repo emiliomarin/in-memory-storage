@@ -24,7 +24,7 @@ type StringStore interface {
 
 // ListStore defines an interface for storing and retrieving lists of any type.
 type ListStore[T any] interface {
-	Get(key string) (Value[[]T], error)
+	Get(key string) (*Value[[]T], error)
 	Set(key string, list []T, ttl time.Duration) error
 	Update(key string, list []T) error
 	Remove(key string) error

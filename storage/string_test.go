@@ -74,7 +74,6 @@ func TestStringStore_Get(t *testing.T) {
 			key:         "expired-key",
 			expectedErr: storage.ErrExpired,
 			setup: func() {
-				// Set an expired value
 				err := store.Set("expired-key", "expired-value", time.Millisecond)
 				assert.Nil(t, err)
 				time.Sleep(2 * time.Millisecond) // Ensure the value is expired
@@ -84,7 +83,6 @@ func TestStringStore_Get(t *testing.T) {
 			key:         "ttl-valid-key",
 			expectedVal: &storage.Value[string]{Value: "valid-value"},
 			setup: func() {
-				// Set a valid value with TTL
 				err := store.Set("ttl-valid-key", "valid-value", time.Second)
 				assert.Nil(t, err)
 			},

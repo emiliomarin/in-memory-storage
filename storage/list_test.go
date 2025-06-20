@@ -4,6 +4,7 @@ import (
 	"errors"
 	"in-memory-storage/storage"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -95,8 +96,9 @@ func TestListStore_Get(t *testing.T) {
 
 	testCases := map[string]struct {
 		key          string
-		expectedList storage.Value[[]string]
+		expectedList *storage.Value[[]string]
 		expectedErr  error
+		setup        func()
 	}{
 		"it should return an error if key not found": {
 			key:         "new-key",
@@ -104,15 +106,38 @@ func TestListStore_Get(t *testing.T) {
 		},
 		"it should get the value": {
 			key:          "existing-key",
-			expectedList: storage.Value[[]string]{Value: []string{"val1", "val2"}},
+			expectedList: &storage.Value[[]string]{Value: []string{"val1", "val2"}},
+		},
+		"it should return an error if the key has expired": {
+			key:         "expired-key",
+			expectedErr: storage.ErrExpired,
+			setup: func() {
+				err := store.Set("expired-key", []string{"expired-value"}, time.Millisecond)
+				assert.Nil(t, err)
+				time.Sleep(2 * time.Millisecond) // Ensure the value is expired
+			},
+		},
+		"it should return the expected value if the key hasn't expired": {
+			key:          "ttl-valid-key",
+			expectedList: &storage.Value[[]string]{Value: []string{"valid-value"}},
+			setup: func() {
+				err := store.Set("ttl-valid-key", []string{"valid-value"}, time.Second)
+				assert.Nil(t, err)
+			},
 		},
 	}
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
+			if tc.setup != nil {
+				tc.setup()
+			}
+
 			val, err := store.Get(tc.key)
 			assert.Equal(t, tc.expectedErr, err)
-			assert.Equal(t, tc.expectedList, val)
+			if val != nil {
+				assert.Equal(t, tc.expectedList.Value, val.Value)
+			}
 		})
 	}
 }
