@@ -39,7 +39,7 @@ func TestServer_Start(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Overwrite Addr to an invalid value to force error
-		srv.Server.Addr = "invalid:port"
+		srv.Addr = "invalid:port"
 		err = srv.Start()
 		assert.Error(t, err)
 	})

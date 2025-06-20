@@ -35,7 +35,7 @@ func (s *Server) Start() error {
 		return errors.New("server not initialized")
 	}
 
-	return s.Server.ListenAndServe()
+	return s.ListenAndServe()
 }
 
 // Stop gracefully stops the HTTP server.
@@ -45,5 +45,5 @@ func (s *Server) Stop(ctx context.Context) error {
 		return errors.New("server not initialized")
 	}
 
-	return s.Server.Shutdown(ctx)
+	return s.Shutdown(ctx)
 }

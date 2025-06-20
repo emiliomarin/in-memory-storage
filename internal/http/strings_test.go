@@ -19,7 +19,8 @@ func TestStringsController_Set(t *testing.T) {
 	controller := http.NewStringsController(store)
 
 	// Populate store with data
-	store.Set("existing-key", "existing-value", 0)
+	err := store.Set("existing-key", "existing-value", 0)
+	assert.NoError(t, err)
 
 	testCases := map[string]struct {
 		key            string
@@ -84,8 +85,10 @@ func TestStringsController_Get(t *testing.T) {
 	controller := http.NewStringsController(store)
 
 	// Populate store with data
-	store.Set("existing-key", "existing-value", 60*time.Second)
-	store.Set("expired-key", "expired-value", 1*time.Millisecond)
+	err := store.Set("existing-key", "existing-value", 60*time.Second)
+	assert.NoError(t, err)
+	err = store.Set("expired-key", "expired-value", 1*time.Millisecond)
+	assert.NoError(t, err)
 
 	time.Sleep(2 * time.Millisecond) // Ensure the expired key is actually expired
 
