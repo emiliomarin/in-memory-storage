@@ -27,3 +27,8 @@ lint:
 ## Run the application. Usage: 'make run'
 run:
 	@go run --tags dev ./cmd/server/. 
+
+.PHONY: run-docker
+## Run the application on docker and start swagger UI. Usage: 'make run-docker'
+run-docker:
+	@docker compose up --build
