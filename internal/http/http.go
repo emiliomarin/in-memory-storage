@@ -11,19 +11,38 @@ import (
 
 type Server struct {
 	*http.Server
+
+	stringsController    StringsController
+	stringListController ListsController
 }
 
 // NewServer creates a new HTTP server with the providided port.
 // It returns an error if the port is missing.
-func NewServer(port string) (*Server, error) {
+func NewServer(
+	port string,
+	stringsController StringsController,
+	stringListController ListsController,
+) (*Server, error) {
 	if port == "" {
 		return nil, errors.New("missing port")
 	}
+	if stringsController == nil {
+		return nil, errors.New("missing strings controller")
+	}
+	if stringListController == nil {
+		return nil, errors.New("missing string list controller")
+	}
 
-	s := &Server{}
+	s := &Server{
+		stringsController:    stringsController,
+		stringListController: stringListController,
+	}
 	s.Server = &http.Server{
 		Addr: ":" + port,
 	}
+
+	// Set the handler to the server's routes
+	s.Handler = s.routes()
 
 	return s, nil
 }
@@ -46,4 +65,44 @@ func (s *Server) Stop(ctx context.Context) error {
 	}
 
 	return s.Shutdown(ctx)
+}
+
+func (s *Server) routes() *http.ServeMux {
+	mux := http.NewServeMux()
+
+	// String routes
+	mux.HandleFunc("/strings", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			s.stringsController.Set(w, r)
+		case http.MethodGet:
+			s.stringsController.Get(w, r)
+		case http.MethodDelete:
+			s.stringsController.Delete(w, r)
+		case http.MethodPut:
+			s.stringsController.Update(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	// String list routes
+	mux.HandleFunc("/lists/strings", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			s.stringListController.Set(w, r)
+		case http.MethodGet:
+			s.stringListController.Get(w, r)
+		case http.MethodDelete:
+			s.stringListController.Delete(w, r)
+		case http.MethodPut:
+			s.stringListController.Update(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+	mux.HandleFunc("/lists/strings/push", s.stringListController.Push)
+	mux.HandleFunc("/lists/strings/pop", s.stringListController.Pop)
+
+	return mux
 }

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"in-memory-storage/internal/http"
+	"in-memory-storage/storage"
 )
 
 const defaultTimeout = 5 * time.Second
@@ -27,7 +28,13 @@ type Application struct {
 
 // New creates a new Application instance with the provided configuration.
 func New(port string) (*Application, error) {
-	httpServer, err := http.NewServer(port)
+	stringStore := storage.NewStringStore()
+	stringListStore := storage.NewListStore[string]()
+
+	stringsCtrl := http.NewStringsController(stringStore)
+	stringsListCtrl := http.NewStringListsController(stringListStore)
+
+	httpServer, err := http.NewServer(port, stringsCtrl, stringsListCtrl)
 	if err != nil {
 		return nil, err
 	}

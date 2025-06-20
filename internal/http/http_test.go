@@ -6,25 +6,69 @@ import (
 	"testing"
 
 	"in-memory-storage/internal/http"
+	"in-memory-storage/storage"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewServer(t *testing.T) {
-	t.Run("it should return an error if the port is missing", func(t *testing.T) {
-		_, err := http.NewServer("")
-		expectedErr := errors.New("missing port")
-		assert.Equal(t, expectedErr, err)
-	})
+	stringsCtrl := http.NewStringsController(storage.NewStringStore())
+	listsCtrl := http.NewStringListsController(storage.NewListStore[string]())
 
-	t.Run("it should return no error if the server is initialized", func(t *testing.T) {
-		srv, err := http.NewServer("8080")
-		assert.NoError(t, err)
-		assert.NotNil(t, srv)
-	})
+	testCases := map[string]struct {
+		port                 string
+		stringsController    http.StringsController
+		stringListController http.ListsController
+		wantErr              error
+		wantNilSrv           bool
+	}{
+		"it should return an error if the port is missing": {
+			port:                 "",
+			stringsController:    stringsCtrl,
+			stringListController: listsCtrl,
+			wantErr:              errors.New("missing port"),
+			wantNilSrv:           true,
+		},
+		"it should return an error if strings controller is missing": {
+			port:                 "8080",
+			stringsController:    nil,
+			stringListController: listsCtrl,
+			wantErr:              errors.New("missing strings controller"),
+			wantNilSrv:           true,
+		},
+		"it should return an error if string list controller is missing": {
+			port:                 "8080",
+			stringsController:    stringsCtrl,
+			stringListController: nil,
+			wantErr:              errors.New("missing string list controller"),
+			wantNilSrv:           true,
+		},
+		"it should return no error if the server is initialized": {
+			port:                 "8080",
+			stringsController:    stringsCtrl,
+			stringListController: listsCtrl,
+			wantErr:              nil,
+			wantNilSrv:           false,
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			srv, err := http.NewServer(tc.port, tc.stringsController, tc.stringListController)
+			assert.Equal(t, tc.wantErr, err)
+			if tc.wantNilSrv {
+				assert.Nil(t, srv)
+			} else {
+				assert.NotNil(t, srv)
+			}
+		})
+	}
 }
 
 func TestServer_Start(t *testing.T) {
+	stringsCtrl := http.NewStringsController(storage.NewStringStore())
+	listsCtrl := http.NewStringListsController(storage.NewListStore[string]())
+
 	t.Run("it should return an error if server is not initialized", func(t *testing.T) {
 		srv := &http.Server{}
 		srv.Server = nil
@@ -35,7 +79,7 @@ func TestServer_Start(t *testing.T) {
 	})
 
 	t.Run("it should return error if ListenAndServe fails", func(t *testing.T) {
-		srv, err := http.NewServer("invalid_port")
+		srv, err := http.NewServer("invalid_port", stringsCtrl, listsCtrl)
 		assert.NoError(t, err)
 
 		// Overwrite Addr to an invalid value to force error
@@ -46,6 +90,9 @@ func TestServer_Start(t *testing.T) {
 }
 
 func TestServer_Stop(t *testing.T) {
+	stringsCtrl := http.NewStringsController(storage.NewStringStore())
+	listsCtrl := http.NewStringListsController(storage.NewListStore[string]())
+
 	t.Run("it should return an error if server is not initialized", func(t *testing.T) {
 		srv := &http.Server{}
 		srv.Server = nil
@@ -56,7 +103,7 @@ func TestServer_Stop(t *testing.T) {
 	})
 
 	t.Run("it should return no error if Shutdown succeeds", func(t *testing.T) {
-		srv, err := http.NewServer("8080")
+		srv, err := http.NewServer("8080", stringsCtrl, listsCtrl)
 		assert.NoError(t, err)
 
 		go func() {
