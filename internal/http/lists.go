@@ -13,7 +13,7 @@ type ListsController interface {
 	Get(w http.ResponseWriter, r *http.Request)
 	Set(w http.ResponseWriter, r *http.Request)
 	Update(w http.ResponseWriter, r *http.Request)
-	Remove(w http.ResponseWriter, r *http.Request)
+	Delete(w http.ResponseWriter, r *http.Request)
 	Push(w http.ResponseWriter, r *http.Request)
 	Pop(w http.ResponseWriter, r *http.Request)
 }
@@ -109,7 +109,7 @@ func (slc *stringListsController) Update(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (slc *stringListsController) Remove(w http.ResponseWriter, r *http.Request) {
+func (slc *stringListsController) Delete(w http.ResponseWriter, r *http.Request) {
 	key := r.URL.Query().Get("key")
 	if key == "" {
 		http.Error(w, ErrEmptyKey.Error(), http.StatusBadRequest)
