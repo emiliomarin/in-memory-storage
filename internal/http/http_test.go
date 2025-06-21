@@ -19,43 +19,48 @@ func TestNewServer(t *testing.T) {
 		port                 string
 		stringsController    http.StringsController
 		stringListController http.ListsController
-		wantErr              error
+		apiKey               string
+		expectedErr          error
 		wantNilSrv           bool
 	}{
 		"it should return an error if the port is missing": {
 			port:                 "",
 			stringsController:    stringsCtrl,
 			stringListController: listsCtrl,
-			wantErr:              errors.New("missing port"),
+			apiKey:               "",
+			expectedErr:          errors.New("missing port"),
 			wantNilSrv:           true,
 		},
 		"it should return an error if strings controller is missing": {
 			port:                 "8080",
 			stringsController:    nil,
 			stringListController: listsCtrl,
-			wantErr:              errors.New("missing strings controller"),
+			apiKey:               "",
+			expectedErr:          errors.New("missing strings controller"),
 			wantNilSrv:           true,
 		},
 		"it should return an error if string list controller is missing": {
 			port:                 "8080",
 			stringsController:    stringsCtrl,
 			stringListController: nil,
-			wantErr:              errors.New("missing string list controller"),
+			apiKey:               "",
+			expectedErr:          errors.New("missing string list controller"),
 			wantNilSrv:           true,
 		},
 		"it should return no error if the server is initialized": {
 			port:                 "8080",
 			stringsController:    stringsCtrl,
 			stringListController: listsCtrl,
-			wantErr:              nil,
+			apiKey:               "",
+			expectedErr:          nil,
 			wantNilSrv:           false,
 		},
 	}
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			srv, err := http.NewServer(tc.port, tc.stringsController, tc.stringListController)
-			assert.Equal(t, tc.wantErr, err)
+			srv, err := http.NewServer(tc.port, tc.stringsController, tc.stringListController, tc.apiKey)
+			assert.Equal(t, tc.expectedErr, err)
 			if tc.wantNilSrv {
 				assert.Nil(t, srv)
 			} else {
@@ -79,7 +84,7 @@ func TestServer_Start(t *testing.T) {
 	})
 
 	t.Run("it should return error if ListenAndServe fails", func(t *testing.T) {
-		srv, err := http.NewServer("invalid_port", stringsCtrl, listsCtrl)
+		srv, err := http.NewServer("invalid_port", stringsCtrl, listsCtrl, "")
 		assert.NoError(t, err)
 
 		// Overwrite Addr to an invalid value to force error
@@ -103,7 +108,7 @@ func TestServer_Stop(t *testing.T) {
 	})
 
 	t.Run("it should return no error if Shutdown succeeds", func(t *testing.T) {
-		srv, err := http.NewServer("8080", stringsCtrl, listsCtrl)
+		srv, err := http.NewServer("8080", stringsCtrl, listsCtrl, "")
 		assert.NoError(t, err)
 
 		go func() {

@@ -14,6 +14,7 @@ type Server struct {
 
 	stringsController    StringsController
 	stringListController ListsController
+	authMiddleware       *AuthMiddleware
 }
 
 // NewServer creates a new HTTP server with the providided port.
@@ -22,6 +23,7 @@ func NewServer(
 	port string,
 	stringsController StringsController,
 	stringListController ListsController,
+	apiKey string,
 ) (*Server, error) {
 	if port == "" {
 		return nil, errors.New("missing port")
@@ -36,6 +38,7 @@ func NewServer(
 	s := &Server{
 		stringsController:    stringsController,
 		stringListController: stringListController,
+		authMiddleware:       NewAuthMiddleware(apiKey),
 	}
 	s.Server = &http.Server{
 		Addr: ":" + port,
@@ -71,7 +74,7 @@ func (s *Server) routes() *http.ServeMux {
 	mux := http.NewServeMux()
 
 	// String routes
-	mux.HandleFunc("/strings", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/strings", s.authMiddleware.WithAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
 			s.stringsController.Set(w, r)
@@ -84,10 +87,10 @@ func (s *Server) routes() *http.ServeMux {
 		default:
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		}
-	})
+	}))
 
 	// String list routes
-	mux.HandleFunc("/lists/strings", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/lists/strings", s.authMiddleware.WithAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
 			s.stringListController.Set(w, r)
@@ -100,9 +103,9 @@ func (s *Server) routes() *http.ServeMux {
 		default:
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		}
-	})
-	mux.HandleFunc("/lists/strings/push", s.stringListController.Push)
-	mux.HandleFunc("/lists/strings/pop", s.stringListController.Pop)
+	}))
+	mux.HandleFunc("/lists/strings/push", s.authMiddleware.WithAuth(s.stringListController.Push))
+	mux.HandleFunc("/lists/strings/pop", s.authMiddleware.WithAuth(s.stringListController.Pop))
 
 	return mux
 }

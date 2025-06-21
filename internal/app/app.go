@@ -34,7 +34,10 @@ func New(port string) (*Application, error) {
 	stringsCtrl := http.NewStringsController(stringStore)
 	stringsListCtrl := http.NewStringListsController(stringListStore)
 
-	httpServer, err := http.NewServer(port, stringsCtrl, stringsListCtrl)
+	// Get API key from environment variable
+	apiKey := os.Getenv("API_KEY")
+
+	httpServer, err := http.NewServer(port, stringsCtrl, stringsListCtrl, apiKey)
 	if err != nil {
 		return nil, err
 	}

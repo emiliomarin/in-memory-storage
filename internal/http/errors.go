@@ -11,4 +11,6 @@ var (
 	ErrKeyAlreadyExists = errors.New("key already exists")
 	// ErrKeyNotFound is returned when the requested key is not found in the store.
 	ErrKeyNotFound = errors.New("key not found")
+	// ErrUnauthorized is returned when the request does not have a valid API key.
+	ErrUnauthorized = errors.New("unauthorized")
 )

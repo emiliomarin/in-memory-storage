@@ -5,6 +5,16 @@
 		"description": "API for managing strings and string lists in memory",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "awesome-api-key",
+				"type": "string"
+			}
+		]
+	},
 	"item": [
 		{
 			"name": "Strings",

@@ -21,4 +21,12 @@ func TestApplication_New(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, app)
 	})
+
+	t.Run("it should create a new Application instance with API key", func(t *testing.T) {
+		// Set API key environment variable
+		t.Setenv("API_KEY", "test-key")
+		app, err := app.New("8080")
+		assert.NoError(t, err)
+		assert.NotNil(t, app)
+	})
 }
