@@ -60,19 +60,17 @@ func (slc *stringListsController) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (slc *stringListsController) Set(w http.ResponseWriter, r *http.Request) {
-	key := r.URL.Query().Get("key")
-	if key == "" {
-		http.Error(w, ErrEmptyKey.Error(), http.StatusBadRequest)
-		return
-	}
-
 	var req lists.SetRequest[string]
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "failed to decode request body: "+err.Error(), http.StatusBadRequest)
 		return
 	}
+	if req.Key == "" {
+		http.Error(w, ErrEmptyKey.Error(), http.StatusBadRequest)
+		return
+	}
 
-	if err := slc.store.Set(key, req.List, time.Duration(req.TTL)*time.Second); err != nil {
+	if err := slc.store.Set(req.Key, req.List, time.Duration(req.TTL)*time.Second); err != nil {
 		if err == storage.ErrAlreadyExists {
 			http.Error(w, ErrKeyAlreadyExists.Error(), http.StatusConflict)
 			return

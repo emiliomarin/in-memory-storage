@@ -6,8 +6,9 @@ type GetResponse[T any] struct {
 }
 
 type SetRequest[T any] struct {
-	List []T   `json:"list"`
-	TTL  int64 `json:"ttl,omitempty"`
+	Key  string `json:"key"`
+	List []T    `json:"list"`
+	TTL  int64  `json:"ttl,omitempty"`
 }
 
 type PopResponse[T any] struct {

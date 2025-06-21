@@ -57,11 +57,13 @@ func TestListsController_Set(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			reqBody, _ := json.Marshal(lists.SetRequest[string]{
+			payload, _ := json.Marshal(lists.SetRequest[string]{
+				Key:  tc.key,
 				List: tc.list,
 				TTL:  tc.ttl,
 			})
-			req := httptest.NewRequest(gohttp.MethodPost, "/lists?key="+tc.key, bytes.NewReader(reqBody))
+			req := httptest.NewRequest(gohttp.MethodPost, "/lists/strings", bytes.NewReader(payload))
+			req.Header.Set("Content-Type", "application/json")
 			rr := httptest.NewRecorder()
 
 			controller.Set(rr, req)

@@ -1,6 +1,7 @@
 package http_test
 
 import (
+	"bytes"
 	"encoding/json"
 	gohttp "net/http"
 	"net/http/httptest"
@@ -62,7 +63,13 @@ func TestStringsController_Set(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			req := httptest.NewRequest(gohttp.MethodPost, "/strings?key="+tc.key+"&value="+tc.value, nil)
+			payload, _ := json.Marshal(strings.SetRequest{
+				Key:   tc.key,
+				Value: tc.value,
+				TTL:   int64(tc.ttl),
+			})
+			req := httptest.NewRequest(gohttp.MethodPost, "/strings", bytes.NewReader(payload))
+			req.Header.Set("Content-Type", "application/json")
 			rr := httptest.NewRecorder()
 
 			controller.Set(rr, req)

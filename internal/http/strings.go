@@ -6,7 +6,6 @@ import (
 	"in-memory-storage/storage"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -26,18 +25,21 @@ type stringController struct {
 }
 
 func (sc *stringController) Set(w http.ResponseWriter, r *http.Request) {
-	key := r.URL.Query().Get("key")
-	if key == "" {
+	var req strings.SetRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "failed to decode request body: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+	if req.Key == "" {
 		http.Error(w, ErrEmptyKey.Error(), http.StatusBadRequest)
 		return
 	}
-	value := r.URL.Query().Get("value")
-	if value == "" {
+	if req.Value == "" {
 		http.Error(w, ErrEmptyValue.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if err := sc.store.Set(key, value, getTTLFromRequest(r)); err != nil {
+	if err := sc.store.Set(req.Key, req.Value, time.Duration(req.TTL)*time.Second); err != nil {
 		if err == storage.ErrAlreadyExists {
 			http.Error(w, ErrKeyAlreadyExists.Error(), http.StatusConflict)
 			return
@@ -46,8 +48,6 @@ func (sc *stringController) Set(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
-
-	// TODO: Here we could also return the response to have the expires at field
 }
 
 func (sc *stringController) Get(w http.ResponseWriter, r *http.Request) {
@@ -121,18 +121,4 @@ func (sc *stringController) Update(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 
 	// TODO: Here we could also return the response to have the expires at field
-}
-
-// getTTLFromRequest extracts an optional "ttl" query parameter (in seconds) from the request.
-// Returns a time.Duration. If not present or invalid, returns 0.
-func getTTLFromRequest(r *http.Request) time.Duration {
-	ttlStr := r.URL.Query().Get("ttl")
-	if ttlStr == "" {
-		return 0
-	}
-	ttlSec, err := strconv.Atoi(ttlStr)
-	if err != nil || ttlSec < 0 {
-		return 0
-	}
-	return time.Duration(ttlSec) * time.Second
 }
