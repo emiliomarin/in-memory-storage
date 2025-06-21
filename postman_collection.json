@@ -1,0 +1,303 @@
+{
+	"info": {
+		"_postman_id": "in-memory-storage-api",
+		"name": "In-Memory Storage API",
+		"description": "API for managing strings and string lists in memory",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Strings",
+			"item": [
+				{
+					"name": "Set String",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"key\": \"my-key\",\n  \"value\": \"my-value\",\n  \"ttl\": 3600\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/strings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"strings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get String",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/strings?key=my-key",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"strings"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "my-key"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update String",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"key\": \"my-key\",\n  \"value\": \"updated-value\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/strings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"strings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete String",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/strings?key=my-key",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"strings"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "my-key"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Lists",
+			"item": [
+				{
+					"name": "Set List",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"key\": \"my-list\",\n  \"list\": [\"item1\", \"item2\", \"item3\"],\n  \"ttl\": 3600\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/lists/strings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"lists",
+								"strings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get List",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/lists/strings?key=my-list",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"lists",
+								"strings"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "my-list"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update List",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"key\": \"my-list\",\n  \"list\": [\"updated-item1\", \"updated-item2\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/lists/strings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"lists",
+								"strings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete List",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/lists/strings?key=my-list",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"lists",
+								"strings"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "my-list"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Push to List",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"key\": \"my-list\",\n  \"value\": \"new-item\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/lists/strings/push",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"lists",
+								"strings",
+								"push"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Pop from List",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"key\": \"my-list\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/lists/strings/pop",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"lists",
+								"strings",
+								"pop"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+} 
