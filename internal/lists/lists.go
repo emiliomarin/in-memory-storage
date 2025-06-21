@@ -19,3 +19,12 @@ type UpdateRequest[T any] struct {
 	Key  string `json:"key"`
 	List []T    `json:"list"`
 }
+
+type PushRequest[T any] struct {
+	Key   string `json:"key"`
+	Value T      `json:"value"`
+}
+
+type PopRequest struct {
+	Key string `json:"key"`
+}

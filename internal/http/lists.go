@@ -126,19 +126,21 @@ func (slc *stringListsController) Delete(w http.ResponseWriter, r *http.Request)
 }
 
 func (slc *stringListsController) Push(w http.ResponseWriter, r *http.Request) {
-	key := r.URL.Query().Get("key")
-	if key == "" {
+	var req lists.PushRequest[string]
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "failed to decode request body: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+	if req.Key == "" {
 		http.Error(w, ErrEmptyKey.Error(), http.StatusBadRequest)
 		return
 	}
-
-	value := r.URL.Query().Get("value")
-	if value == "" {
+	if req.Value == "" {
 		http.Error(w, ErrEmptyValue.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if err := slc.store.Push(key, value); err != nil {
+	if err := slc.store.Push(req.Key, req.Value); err != nil {
 		if err == storage.ErrNotFound {
 			http.Error(w, ErrKeyNotFound.Error(), http.StatusNotFound)
 			return
@@ -148,17 +150,20 @@ func (slc *stringListsController) Push(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-
 }
 
 func (slc *stringListsController) Pop(w http.ResponseWriter, r *http.Request) {
-	key := r.URL.Query().Get("key")
-	if key == "" {
+	var req lists.PopRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "failed to decode request body: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+	if req.Key == "" {
 		http.Error(w, ErrEmptyKey.Error(), http.StatusBadRequest)
 		return
 	}
 
-	value, err := slc.store.Pop(key)
+	value, err := slc.store.Pop(req.Key)
 	if err != nil {
 		if err == storage.ErrNotFound {
 			http.Error(w, ErrKeyNotFound.Error(), http.StatusNotFound)
