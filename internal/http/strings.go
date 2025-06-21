@@ -27,7 +27,7 @@ type stringController struct {
 func (sc *stringController) Set(w http.ResponseWriter, r *http.Request) {
 	var req strings.SetRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "failed to decode request body: "+err.Error(), http.StatusBadRequest)
+		http.Error(w, ErrInvalidBody.Error(), http.StatusBadRequest)
 		return
 	}
 	if req.Key == "" {
@@ -101,7 +101,7 @@ func (sc *stringController) Delete(w http.ResponseWriter, r *http.Request) {
 func (sc *stringController) Update(w http.ResponseWriter, r *http.Request) {
 	var req strings.UpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "failed to decode request body: "+err.Error(), http.StatusBadRequest)
+		http.Error(w, ErrInvalidBody.Error(), http.StatusBadRequest)
 		return
 	}
 	if req.Key == "" {

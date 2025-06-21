@@ -13,4 +13,6 @@ var (
 	ErrKeyNotFound = errors.New("key not found")
 	// ErrUnauthorized is returned when the request does not have a valid API key.
 	ErrUnauthorized = errors.New("unauthorized")
+	// ErrInvalidBody is returned when the request body is invalid.
+	ErrInvalidBody = errors.New("invalid request body")
 )
