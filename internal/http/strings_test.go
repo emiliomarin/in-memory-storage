@@ -149,3 +149,67 @@ func TestStringsController_Get(t *testing.T) {
 		})
 	}
 }
+
+func TestStringsController_Update(t *testing.T) {
+	store := storage.NewStringStore()
+	controller := http.NewStringsController(store)
+
+	// Populate store with data
+	err := store.Set("existing-key", "existing-value", 0)
+	assert.NoError(t, err)
+
+	testCases := map[string]struct {
+		key            string
+		value          string
+		expectedStatus int
+		expectedError  error
+	}{
+		"it should return an error if the key is missing": {
+			key:            "",
+			value:          "foo",
+			expectedStatus: gohttp.StatusBadRequest,
+			expectedError:  http.ErrEmptyKey,
+		},
+		"it should return an error if the value is missing": {
+			key:            "foo",
+			value:          "",
+			expectedStatus: gohttp.StatusBadRequest,
+			expectedError:  http.ErrEmptyValue,
+		},
+		"it should return an error if the key does not exist": {
+			key:            "non-existing-key",
+			value:          "new-value",
+			expectedStatus: gohttp.StatusNotFound,
+			expectedError:  http.ErrKeyNotFound,
+		},
+		"success": {
+			key:            "existing-key",
+			value:          "updated-value",
+			expectedStatus: gohttp.StatusNoContent,
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			payload, _ := json.Marshal(strings.UpdateRequest{
+				Key:   tc.key,
+				Value: tc.value,
+			})
+			req := httptest.NewRequest(gohttp.MethodPut, "/strings", bytes.NewReader(payload))
+			req.Header.Set("Content-Type", "application/json")
+			rr := httptest.NewRecorder()
+
+			controller.Update(rr, req)
+
+			assert.Equal(t, tc.expectedStatus, rr.Code)
+			if tc.expectedError != nil {
+				assert.Contains(t, rr.Body.String(), tc.expectedError.Error())
+			} else {
+				// Check that the value was updated in the store if no error
+				storedValue, err := store.Get(tc.key)
+				assert.NoError(t, err)
+				assert.Equal(t, tc.value, storedValue.Value)
+			}
+		})
+	}
+}

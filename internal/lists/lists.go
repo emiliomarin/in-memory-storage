@@ -14,3 +14,8 @@ type SetRequest[T any] struct {
 type PopResponse[T any] struct {
 	Value T `json:"value"`
 }
+
+type UpdateRequest[T any] struct {
+	Key  string `json:"key"`
+	List []T    `json:"list"`
+}

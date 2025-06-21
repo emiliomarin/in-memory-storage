@@ -141,3 +141,61 @@ func TestListsController_Get(t *testing.T) {
 		})
 	}
 }
+
+func TestListsController_Update(t *testing.T) {
+	store := storage.NewListStore[string]()
+	controller := http.NewStringListsController(store)
+
+	// Populate store with data
+	err := store.Set("existing-key", []string{"a", "b"}, 0)
+	assert.NoError(t, err)
+
+	testCases := map[string]struct {
+		key            string
+		list           []string
+		expectedStatus int
+		expectedError  error
+	}{
+		"it should return an error if the key is missing": {
+			key:            "",
+			list:           []string{"foo"},
+			expectedStatus: gohttp.StatusBadRequest,
+			expectedError:  http.ErrEmptyKey,
+		},
+		"it should return an error if the key does not exist": {
+			key:            "non-existing-key",
+			list:           []string{"new-item"},
+			expectedStatus: gohttp.StatusNotFound,
+			expectedError:  http.ErrKeyNotFound,
+		},
+		"success": {
+			key:            "existing-key",
+			list:           []string{"updated-item1", "updated-item2"},
+			expectedStatus: gohttp.StatusNoContent,
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			payload, _ := json.Marshal(lists.UpdateRequest[string]{
+				Key:  tc.key,
+				List: tc.list,
+			})
+			req := httptest.NewRequest(gohttp.MethodPut, "/lists/strings", bytes.NewReader(payload))
+			req.Header.Set("Content-Type", "application/json")
+			rr := httptest.NewRecorder()
+
+			controller.Update(rr, req)
+
+			assert.Equal(t, tc.expectedStatus, rr.Code)
+			if tc.expectedError != nil {
+				assert.Contains(t, rr.Body.String(), tc.expectedError.Error())
+			} else {
+				// Check that the value was updated in the store if no error
+				storedValue, err := store.Get(tc.key)
+				assert.NoError(t, err)
+				assert.ElementsMatch(t, tc.list, storedValue.Value)
+			}
+		})
+	}
+}

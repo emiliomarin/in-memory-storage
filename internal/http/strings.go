@@ -99,18 +99,21 @@ func (sc *stringController) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (sc *stringController) Update(w http.ResponseWriter, r *http.Request) {
-	key := r.URL.Query().Get("key")
-	if key == "" {
+	var req strings.UpdateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "failed to decode request body: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+	if req.Key == "" {
 		http.Error(w, ErrEmptyKey.Error(), http.StatusBadRequest)
 		return
 	}
-	value := r.URL.Query().Get("value")
-	if value == "" {
+	if req.Value == "" {
 		http.Error(w, ErrEmptyValue.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if err := sc.store.Update(key, value); err != nil {
+	if err := sc.store.Update(req.Key, req.Value); err != nil {
 		if err == storage.ErrNotFound {
 			http.Error(w, ErrKeyNotFound.Error(), http.StatusNotFound)
 			return
@@ -119,6 +122,4 @@ func (sc *stringController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
-
-	// TODO: Here we could also return the response to have the expires at field
 }
