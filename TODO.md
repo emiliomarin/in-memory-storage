@@ -1,5 +1,0 @@
-- Docs for running
-- API docs
-- Implement TTL
-- Implement REST API
-- Check optional features
