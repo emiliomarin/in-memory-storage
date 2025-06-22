@@ -39,6 +39,7 @@ func (slc *stringListsController) Get(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, ErrKeyNotFound.Error(), http.StatusNotFound)
 			return
 		}
+		log.Printf("ERROR: failed to get value for key %s: %v", key, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -50,6 +51,7 @@ func (slc *stringListsController) Get(w http.ResponseWriter, r *http.Request) {
 		ExpiresAt: value.ExpiresAt.Format(time.RFC3339),
 	})
 	if err != nil {
+		log.Printf("ERROR: failed to marshal response for key %s: %v", key, err)
 		http.Error(w, "failed to marshal response: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -62,7 +64,8 @@ func (slc *stringListsController) Get(w http.ResponseWriter, r *http.Request) {
 func (slc *stringListsController) Set(w http.ResponseWriter, r *http.Request) {
 	var req lists.SetRequest[string]
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "failed to decode request body: "+err.Error(), http.StatusBadRequest)
+		log.Printf("ERROR: failed to decode request body: %v", err)
+		http.Error(w, ErrInvalidBody.Error(), http.StatusBadRequest)
 		return
 	}
 	if req.Key == "" {
@@ -75,6 +78,7 @@ func (slc *stringListsController) Set(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, ErrKeyAlreadyExists.Error(), http.StatusConflict)
 			return
 		}
+		log.Printf("ERROR: failed to set list for key %s: %v", req.Key, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -85,7 +89,8 @@ func (slc *stringListsController) Set(w http.ResponseWriter, r *http.Request) {
 func (slc *stringListsController) Update(w http.ResponseWriter, r *http.Request) {
 	var req lists.UpdateRequest[string]
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "failed to decode request body: "+err.Error(), http.StatusBadRequest)
+		log.Printf("ERROR: failed to decode request body: %v", err)
+		http.Error(w, ErrInvalidBody.Error(), http.StatusBadRequest)
 		return
 	}
 	if req.Key == "" {
@@ -94,10 +99,11 @@ func (slc *stringListsController) Update(w http.ResponseWriter, r *http.Request)
 	}
 
 	if err := slc.store.Update(req.Key, req.List); err != nil {
-		if err == storage.ErrNotFound {
+		if err == storage.ErrNotFound || err == storage.ErrExpired {
 			http.Error(w, ErrKeyNotFound.Error(), http.StatusNotFound)
 			return
 		}
+		log.Printf("ERROR: failed to update list for key %s: %v", req.Key, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -117,6 +123,7 @@ func (slc *stringListsController) Delete(w http.ResponseWriter, r *http.Request)
 			http.Error(w, ErrKeyNotFound.Error(), http.StatusNotFound)
 			return
 		}
+		log.Printf("ERROR: failed to remove list for key %s: %v", key, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -128,7 +135,8 @@ func (slc *stringListsController) Delete(w http.ResponseWriter, r *http.Request)
 func (slc *stringListsController) Push(w http.ResponseWriter, r *http.Request) {
 	var req lists.PushRequest[string]
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "failed to decode request body: "+err.Error(), http.StatusBadRequest)
+		log.Printf("ERROR: failed to decode request body: %v", err)
+		http.Error(w, ErrInvalidBody.Error(), http.StatusBadRequest)
 		return
 	}
 	if req.Key == "" {
@@ -141,10 +149,11 @@ func (slc *stringListsController) Push(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := slc.store.Push(req.Key, req.Value); err != nil {
-		if err == storage.ErrNotFound {
+		if err == storage.ErrNotFound || err == storage.ErrExpired {
 			http.Error(w, ErrKeyNotFound.Error(), http.StatusNotFound)
 			return
 		}
+		log.Printf("ERROR: failed to push to list for key %s: %v", req.Key, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -155,7 +164,8 @@ func (slc *stringListsController) Push(w http.ResponseWriter, r *http.Request) {
 func (slc *stringListsController) Pop(w http.ResponseWriter, r *http.Request) {
 	var req lists.PopRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "failed to decode request body: "+err.Error(), http.StatusBadRequest)
+		log.Printf("ERROR: failed to decode request body: %v", err)
+		http.Error(w, ErrInvalidBody.Error(), http.StatusBadRequest)
 		return
 	}
 	if req.Key == "" {
@@ -165,10 +175,11 @@ func (slc *stringListsController) Pop(w http.ResponseWriter, r *http.Request) {
 
 	value, err := slc.store.Pop(req.Key)
 	if err != nil {
-		if err == storage.ErrNotFound {
-			http.Error(w, ErrKeyNotFound.Error(), http.StatusNotFound)
+		if err == storage.ErrNotFound || err == storage.ErrEmptyList || err == storage.ErrExpired {
+			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
+		log.Printf("ERROR: failed to pop from list for key %s: %v", req.Key, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -179,6 +190,7 @@ func (slc *stringListsController) Pop(w http.ResponseWriter, r *http.Request) {
 		Value: value,
 	})
 	if err != nil {
+		log.Printf("ERROR: failed to marshal response for key %s: %v", req.Key, err)
 		http.Error(w, "failed to marshal response: "+err.Error(), http.StatusInternalServerError)
 		return
 	}

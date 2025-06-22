@@ -27,6 +27,7 @@ type stringController struct {
 func (sc *stringController) Set(w http.ResponseWriter, r *http.Request) {
 	var req strings.SetRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("ERROR: failed to decode request body: %v", err)
 		http.Error(w, ErrInvalidBody.Error(), http.StatusBadRequest)
 		return
 	}
@@ -44,6 +45,7 @@ func (sc *stringController) Set(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, ErrKeyAlreadyExists.Error(), http.StatusConflict)
 			return
 		}
+		log.Printf("ERROR: failed to set value for key %s: %v", req.Key, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -63,6 +65,7 @@ func (sc *stringController) Get(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, ErrKeyNotFound.Error(), http.StatusNotFound)
 			return
 		}
+		log.Printf("ERROR: failed to get value for key %s: %v", key, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -72,6 +75,7 @@ func (sc *stringController) Get(w http.ResponseWriter, r *http.Request) {
 		ExpiresAt: value.ExpiresAt.Format(time.RFC3339),
 	})
 	if err != nil {
+		log.Printf("ERROR: failed to marshal response for key %s: %v", key, err)
 		http.Error(w, "failed to marshal response: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -92,6 +96,7 @@ func (sc *stringController) Delete(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, ErrKeyNotFound.Error(), http.StatusNotFound)
 			return
 		}
+		log.Printf("ERROR: failed to remove key %s: %v", key, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -101,6 +106,7 @@ func (sc *stringController) Delete(w http.ResponseWriter, r *http.Request) {
 func (sc *stringController) Update(w http.ResponseWriter, r *http.Request) {
 	var req strings.UpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("ERROR: failed to decode request body: %v", err)
 		http.Error(w, ErrInvalidBody.Error(), http.StatusBadRequest)
 		return
 	}
@@ -114,10 +120,11 @@ func (sc *stringController) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := sc.store.Update(req.Key, req.Value); err != nil {
-		if err == storage.ErrNotFound {
+		if err == storage.ErrNotFound || err == storage.ErrExpired {
 			http.Error(w, ErrKeyNotFound.Error(), http.StatusNotFound)
 			return
 		}
+		log.Printf("ERROR: failed to update key %s: %v", req.Key, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
