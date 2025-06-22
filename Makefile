@@ -31,4 +31,4 @@ run:
 .PHONY: run-docker
 ## Run the application on docker and start swagger UI. Usage: 'make run-docker'
 run-docker:
-	@docker compose up --build
+	@docker compose up --build -d
