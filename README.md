@@ -57,6 +57,10 @@ Optional features:
    make run
    ```
 
+## REST API Usage
+Import the Postman collection and test the different endpoints.
+`API_KEY` for is defined in `cmd/server/dev.go` as `awesome-api-key`
+
 ## Documentation
 
 - **[Storage Library API](docs/storage_api.md)** - Complete API documentation for the storage library
