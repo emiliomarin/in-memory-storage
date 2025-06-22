@@ -50,10 +50,22 @@ func (ls *listStore[T]) Get(key string) (*Value[[]T], error) {
 }
 
 // Update will update the value for the given key.
-// It will return an error if the list is not found.
+// It will return an error if the list is not found or if it has expired.
 func (ls *listStore[T]) Update(key string, list []T) error {
 	ls.mu.Lock()
 	defer ls.mu.Unlock()
+
+	// Check if the key exists and if it has expired.
+	v, ok := ls.store[key]
+	if !ok {
+		return ErrNotFound
+	}
+
+	if !v.ExpiresAt.IsZero() && v.ExpiresAt.Before(time.Now()) {
+		delete(ls.store, key)
+		return ErrExpired
+	}
+
 	return update(ls.store, key, list)
 }
 
@@ -66,16 +78,23 @@ func (ls *listStore[T]) Remove(key string) error {
 }
 
 // Push will add the given value to the existing list.
-// It will return an error if the list is not found
+// It will return an error if the list is not found or if it has expired.
 func (ls *listStore[T]) Push(key string, val T) error {
 	ls.mu.Lock()
 	defer ls.mu.Unlock()
 
-	if _, ok := ls.store[key]; !ok {
+	v, ok := ls.store[key]
+	if !ok {
 		return ErrNotFound
 	}
 
-	v := ls.store[key]
+	// If the value has an expiration time and it is in the past, remove it
+	// and return an error indicating it has expired.
+	if !v.ExpiresAt.IsZero() && v.ExpiresAt.Before(time.Now()) {
+		delete(ls.store, key)
+		return ErrExpired
+	}
+
 	v.Value = append(v.Value, val)
 	ls.store[key] = v
 
@@ -83,14 +102,22 @@ func (ls *listStore[T]) Push(key string, val T) error {
 }
 
 // Pop will retrieve and remove the first item from the list. Applying FIFO.
-// It will check that the list exists and that it's not empty.
+// It will check that the list exists, that it's not empty and that it has not expired.
 func (ls *listStore[T]) Pop(key string) (T, error) {
 	ls.mu.Lock()
 	defer ls.mu.Unlock()
 	var zero T
 
-	if _, ok := ls.store[key]; !ok {
+	v, ok := ls.store[key]
+	if !ok {
 		return zero, ErrNotFound
+	}
+
+	// If the value has an expiration time and it is in the past, remove it
+	// and return an error indicating it has expired.
+	if !v.ExpiresAt.IsZero() && v.ExpiresAt.Before(time.Now()) {
+		delete(ls.store, key)
+		return zero, ErrExpired
 	}
 
 	if len(ls.store[key].Value) == 0 {

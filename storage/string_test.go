@@ -116,6 +116,7 @@ func TestStringStore_Update(t *testing.T) {
 		val         string
 		expectedVal *storage.Value[string]
 		expectedErr error
+		setup       func()
 	}{
 		"it should return an error if key not found": {
 			key:         "new-key",
@@ -127,10 +128,24 @@ func TestStringStore_Update(t *testing.T) {
 			val:         "new-value",
 			expectedVal: &storage.Value[string]{Value: "new-value"},
 		},
+		"it should return an error if the key has expired": {
+			key:         "expired-key",
+			val:         "new-value",
+			expectedErr: storage.ErrExpired,
+			setup: func() {
+				err := store.Set("expired-key", "expired-value", time.Millisecond)
+				assert.Nil(t, err)
+				time.Sleep(2 * time.Millisecond) // Ensure the value is expired
+			},
+		},
 	}
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
+			if tc.setup != nil {
+				tc.setup()
+			}
+
 			err := store.Update(tc.key, tc.val)
 			assert.Equal(t, tc.expectedErr, err)
 

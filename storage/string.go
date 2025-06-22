@@ -52,10 +52,22 @@ func (ss *stringStore) Get(key string) (*Value[string], error) {
 }
 
 // Update will update the value for the given key.
-// It will return an error if not found.
+// It will return an error if not found or if the key has expired.
 func (ss *stringStore) Update(key, val string) error {
 	ss.mu.Lock()
 	defer ss.mu.Unlock()
+
+	// Check if the key exists and if it has expired.
+	v, ok := ss.store[key]
+	if !ok {
+		return ErrNotFound
+	}
+
+	if !v.ExpiresAt.IsZero() && v.ExpiresAt.Before(time.Now()) {
+		delete(ss.store, key)
+		return ErrExpired
+	}
+
 	return update(ss.store, key, val)
 }
 
